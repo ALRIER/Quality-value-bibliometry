@@ -22,9 +22,9 @@ help("bibliometrix")
 help("igraph")
 help("network")
 #seteo el directorio de trabajo
-setwd("/home/alrier/Documentos/valor, satisfacción y calidad bibliometria/bib valor, calidad y satisfaccion")
+setwd("/home/alrier/Documentos/bibliometrías")
 #Importo el archivo
-file <- ("/home/alrier/Documentos/valor, satisfacción y calidad bibliometria/bib valor, calidad y satisfaccion/valorcalidad.bib")
+file <- ("/home/alrier/Documentos/bibliometrías/valor y calidad bibliometria/scopus.bib")
 #convierto a Dataframe
 M <- convert2df(file, dbsource = "scopus", format = "bibtex")
 '''Paso los documentos a formato tibble para trabajar un filtro 
@@ -40,8 +40,9 @@ N3 <- biblioAnalysis(M1, sep = ";")
 #agrupo y resumo resultados
 '''este sumario y los plots es mejor trabajarlos sobre el archivo 
 bibliometrix en formato DF'''
-S <- summary(object = N3, k = 20, pause = FALSE)
-plot(x = S, k = 20, pause = FALSE)
+S1 <- biblioAnalysis(M, sep = ";")
+S2 <- summary(object = S1, k = 20, pause = FALSE)
+plot(x = S1, k = 20, pause = FALSE)
 
 '''genero la primera red matricial de datos'''
 NetMatrix <- biblioNetwork(M1, analysis = "co-occurrences", network = "author_keywords", sep = ";")
@@ -195,5 +196,4 @@ wordcloud(words = dataletras$word, freq = dataletras$freq, min.freq = 5,
           max.words=150, random.order=FALSE, rot.per=0.2, 
           colors=brewer.pal(7, "Dark2"))
 
-################# Leer manual CVMS para crossmodalidad. 
 
