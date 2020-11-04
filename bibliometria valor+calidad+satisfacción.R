@@ -27,25 +27,16 @@ setwd("/home/alrier/Documentos/bibliometrías")
 file <- ("/home/alrier/Documentos/bibliometrías/valor y calidad bibliometria/scopus.bib")
 #convierto a Dataframe
 M <- convert2df(file, dbsource = "scopus", format = "bibtex")
-'''Paso los documentos a formato tibble para trabajar un filtro 
-por años a partir del año 2018 en adelante, pero es solo para hacer
-un análisis más liviano, después puedo retomar el objeto M que es un 
-DF y contiene todos los resultados''' 
-N1 <- as.tibble(M)
-N2<- N1 %>% filter(PY >=2018)
-#convierto nuevamente a DF para continuar trabajando sobre mi filtro
-M1 <- as.data.frame(N2)
-#Hago el biblioanálisis
-N3 <- biblioAnalysis(M1, sep = ";")
 #agrupo y resumo resultados
 '''este sumario y los plots es mejor trabajarlos sobre el archivo 
 bibliometrix en formato DF'''
 S1 <- biblioAnalysis(M, sep = ";")
 S2 <- summary(object = S1, k = 20, pause = FALSE)
+#Genero un plot de los biblioanalizables
 plot(x = S1, k = 20, pause = FALSE)
 
 '''genero la primera red matricial de datos'''
-NetMatrix <- biblioNetwork(M1, analysis = "co-occurrences", network = "author_keywords", sep = ";")
+NetMatrix <- biblioNetwork(M, analysis = "co-occurrences", network = "author_keywords", sep = ";")
 '''calculo los indices de similitud (ojo a este procedimiento porque 
 a partir de 10 mil observaciones requiere buena RAM del equipo'''
 P <- normalizeSimilarity(NetMatrix, type = "association")
@@ -55,7 +46,7 @@ p1net <- networkPlot(P, n = 20, Title = "co-occurrence network", type = "fruchte
                          remove.isolates = F, curved = 0.9, edgesize = 3,remove.multiple = T, noloops = T, weighted = TRUE)
 
 '''segunda red matricial de datos con su grafica'''
-NetMatrix2 <- biblioNetwork(M1, analysis = "co-citation", network = "references", sep = ". ")
+NetMatrix2 <- biblioNetwork(M, analysis = "co-citation", network = "references", sep = ". ")
 '''Grafico mi segunda red''' 
 p2net=networkPlot(NetMatrix2, n = 10, Title = "Country Collaboration", type = "fruchterman", labelsize = 1, size = 10, size.cex = T, halo = T, cluster = "spinglass",
                 remove.isolates = T, curved = 0.9, edgesize = 3,remove.multiple = T, noloops = T, weighted = TRUE)
@@ -70,17 +61,17 @@ p3net=networkPlot(NetMatrix3, n = 10, Title = "Country Collaboration", type = "f
 #Del total de resultados, extraigo los papers más citados
 '''los puedo retirar del sumario o del total de observaciones'''
 '''Estraidos del total de observaciones'''
-AU <- N3$MostCitedPapers
+AU <- S1$MostCitedPapers
 '''Extraidos del sumario -> de aquí va a estraer los 20 más 
 importantes, o el número de observaciones que yo haya pedido a R'''
-AU1 <- S$MostCitedPapers
+AU1 <- S1$MostCitedPapers
 AUT <- AU1[1:2]
 View(AUT)
 View(AU)
 
 '''hago lo mismo con los países'''
-Paises <- N3$Countries
-Paises <- S$MostProdCountries
+Paises <- S1$Countries
+Paises <- S1$MostProdCountries
 View(Paises)
 Paises <- Paises[c(1, 3)]
 '''re nombro la columna paises'''
@@ -90,12 +81,12 @@ names(Paises)[1] <- "Country"
 '''quito algonos errores'''
 Paises$Freq <- suppressWarnings(as.numeric(Paises$Freq))
 '''miro los años de producción'''
-Produccion <- S$AnnualProduction
+Produccion <- S1$AnnualProduction
 names(Produccion)[1] <- "Year"
 '''seteo la segunda columna como numerica'''
 Produccion$Articles <- as.numeric(Produccion$Articles)
 '''revisemos los keywords'''
-key<- S$MostRelKeywords
+key<- S1$MostRelKeywords
 key <- key[c(1, 2)]
 plot(key)
 '''graficas y plots'''
@@ -103,14 +94,9 @@ Fig1A <- ggplot(Paises, aes(x=reorder(Country, Freq) , y=Freq)) + geom_bar(stat 
 Fig1B <- ggplot(Produccion, aes(x=Year , y=Articles)) + geom_bar(stat = "identity", fill="blue") + xlab("Year") + ylab("Articles") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ggarrange (Fig1A, Fig1B, labels = c("A", "B"), ncol = 2, nrow = 1)
 
-'''graficas y plots por citas y palabras clave'''
-Fig1A <- ggplot(key, aes(x=1 , y=2)) + geom_bar(stat = "identity", fill="blue") + coord_flip() + xlab("KeyWords") + ylab("Articles")
-Fig1B <- ggplot(AUT, aes(x=2 , y=1)) + geom_bar(stat = "identity", fill="blue") + xlab("Paper") + ylab("TotalC") + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggarrange (Fig1A, Fig1B, labels = c("A", "B"), ncol = 2, nrow = 1)
-plot(Fig1A)
-#este trabajo de minería se hace sobre el total de observaciones N3.
+#este trabajo de minería se hace sobre el total de observaciones S1.
 '''Minería de datos'''
-texto = Corpus(VectorSource(N3)) 
+texto = Corpus(VectorSource(S1)) 
 '''minuscula (A!=a)'''
 discurso=tm_map(texto, tolower)
 '''quitamos los espacios en blanco'''
